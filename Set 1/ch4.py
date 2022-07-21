@@ -5,6 +5,7 @@ Cryptopals - Set 1 - Challenge 4
 
 """
 
+from unittest import result
 import crypty
 import ch3
 
@@ -19,17 +20,29 @@ def getLineWithLowestEntropy(inputFilePath):
 		
 		if lowestEntropy == None and resultLine == None:
 			resultLine = line
-			lowestEntropy = crypty.getEntropy(lineBytes)
+			lowestEntropy = crypty.getShannonEntropy(lineBytes)
 			continue
 
-		currentEntropy = crypty.getEntropy(lineBytes)
+		currentEntropy = crypty.getShannonEntropy(lineBytes)
 
 		if currentEntropy < lowestEntropy:
 			lowestEntropy = currentEntropy
 			resultLine = line
 
-	print(f"{lowestEntropy}:\t'{crypty.hexToString(resultLine)}'")
+	print(lowestEntropy)
 	return resultLine
+
+def xorBruteForce(encodedBytes, resultList):
+
+	for key in range(256):
+		keyByte = crypty.hexToBytes(hex(key)[2:])
+		xorResult = crypty.xorBytes(encodedBytes, keyByte)
+		score = crypty.getEnglishScore(xorResult)
+
+		# List: [entropy, key(char), xorResult as string]
+		resultList.append([score, crypty.bytesToString(keyByte), crypty.bytesToString(xorResult)])
+
+	return resultList
 
 def fasterSolution():
 	inputFilePath = "4.txt"
@@ -38,7 +51,7 @@ def fasterSolution():
 
 	resultList = []
 
-	resultList = ch3.xorBruteForce(encodedBytes, resultList)
+	resultList = xorBruteForce(encodedBytes, resultList)
 
 	resultList.sort()
 
@@ -51,16 +64,16 @@ def slowerSolution():
 	for line in open(inputFilePath, "rt"):
 		encoded = line.replace("\n", "")
 		encodedBytes = crypty.hexToBytes(encoded)
-		resultList = ch3.xorBruteForce(encodedBytes, resultList)
+		resultList = xorBruteForce(encodedBytes, resultList)
 
 	resultList.sort()
-	ch3.printBestResults(resultList, 5)
-
+	ch3.printBestResults(resultList)
 
 def main():
 
-	#fasterSolution()
-	slowerSolution()
+	fasterSolution()
+	#print("----------------------")
+	#slowerSolution()
 
 if __name__ == "__main__":
 	main()
